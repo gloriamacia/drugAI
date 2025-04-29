@@ -10,7 +10,7 @@ export default function App() {
 
   return (
     <>
-      <header className="flex justify-between items-center p-4 border-b bg-gray-50">
+      <header className="flex justify-between items-center p-4 border-b bg-gray-50 font-primary">
         <h1 className="text-xl font-bold">🧬 DrugAI</h1>
         <div>
           <SignedIn>
