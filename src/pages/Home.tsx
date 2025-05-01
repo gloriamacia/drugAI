@@ -1,5 +1,4 @@
 // src/pages/Home.tsx
-
 import { FC, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import heroWebm from "../assets/1A3N_camera-spin.webm";
@@ -8,18 +7,11 @@ import heroMp4 from "../assets/1A3N_camera-spin.mp4";
 import { ModelsSection } from "../components/ModelsSection";
 import { PricingSection } from "../components/PricingSection";
 
-interface HeroVideoProps {
-  mp4: string;
+export const HeroVideo: FC<{
   webm: string;
+  mp4: string;
   playbackRate?: number;
-}
-
-// Named export for HeroVideo
-export const HeroVideo: FC<HeroVideoProps> = ({
-  webm,
-  mp4,
-  playbackRate = 0.75,
-}) => {
+}> = ({ webm, mp4, playbackRate = 0.75 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -47,7 +39,7 @@ export const HeroVideo: FC<HeroVideoProps> = ({
 };
 
 const Home: FC = () => (
-  <div className="min-h-screen bg-white flex flex-col">
+  <div className="min-h-screen bg-white flex flex-col" id="top">
     {/* Hero Section */}
     <main className="flex flex-col md:flex-row items-center justify-between flex-wrap ">
       {/* Left */}
@@ -72,9 +64,15 @@ const Home: FC = () => (
       </div>
     </main>
 
-    {/* Models Section (full-width row beneath the hero) */}
-    <ModelsSection />
-    <PricingSection />
+    {/* Models Section */}
+    <section id="models">
+      <ModelsSection />
+    </section>
+
+    {/* Pricing Section */}
+    <section id="pricing">
+      <PricingSection />
+    </section>
   </div>
 );
 

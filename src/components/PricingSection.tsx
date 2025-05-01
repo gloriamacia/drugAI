@@ -1,5 +1,3 @@
-// src/components/PricingSection.tsx
-
 import { FC } from "react";
 import { Link } from "react-router-dom";
 
@@ -9,22 +7,17 @@ export const PricingSection: FC = () => (
       Pricing Plans
     </h2>
 
-    {/* 
-      grid-cols-1 always; 
-      at md (≥768px) switch to 2 cols; 
-      also ensure at lg it's still 2 cols 
-    */}
-    <div className="w-full grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 ">
+    <div className="w-full grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
       {/* Free Plan */}
-      <div className="border border-gray-200 rounded-xl p-6 flex flex-col">
+      <div className="border border-gray-200 rounded-xl p-6 flex flex-col h-full transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Free</h3>
-        <p className="text-gray-600  mb-6">
+        <p className="text-gray-600 mb-6">
           Perfect for getting started with AI predictions.
         </p>
-        <div className="mb-6 space-y-2 ">
+        <div className="mb-6 space-y-2">
           <div className="flex items-center">
-            <span className="mr-2 font-medium ">Monthly quota:</span>
-            <span className="text-gray-900 ">100 predictions</span>
+            <span className="mr-2 font-medium">Monthly quota:</span>
+            <span className="text-gray-900">100 predictions</span>
           </div>
           <div className="flex items-center">
             <span className="mr-2 font-medium">Concurrency:</span>
@@ -39,19 +32,19 @@ export const PricingSection: FC = () => (
           <span className="text-4xl font-extrabold text-gray-900">$0</span>
           <span className="text-base text-gray-600"> / month</span>
           <button
-            className="mt-6 w-full bg-gray-200 text-gray-800 font-medium py-2 rounded-lg hover:bg-gray-300 transition"
+            className="mt-6 w-full bg-gray-200 text-gray-800 font-medium py-2 rounded-lg hover:bg-gray-300 transition-colors"
             disabled
           >
-            Current Plan
+            Try Free
           </button>
         </div>
       </div>
 
       {/* Pro Plan */}
-      <div className="border-2 border-primary rounded-xl p-6 flex flex-col">
+      <div className="border-2 border-primary rounded-xl p-6 flex flex-col h-full transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Pro</h3>
         <p className="text-gray-600 mb-6">
-          For power users and teams who need higher throughput.
+          For power users who need higher throughput.
         </p>
         <div className="mb-6 space-y-2">
           <div className="flex items-center">
@@ -64,7 +57,7 @@ export const PricingSection: FC = () => (
           </div>
           <div className="flex items-center">
             <span className="mr-2 font-medium">Support:</span>
-            <span className="text-gray-900">Email & chat support</span>
+            <span className="text-gray-900">Community forum & Email</span>
           </div>
         </div>
         <div className="mt-auto">
@@ -72,7 +65,7 @@ export const PricingSection: FC = () => (
           <span className="text-base text-gray-600"> / month</span>
           <Link
             to="/subscribe"
-            className="mt-6 block w-full bg-primary text-white font-medium py-2 rounded-lg hover:bg-primary transition text-center"
+            className="mt-6 block w-full bg-primary text-white font-medium py-2 rounded-lg hover:bg-primary transition-colors text-center"
           >
             Subscribe
           </Link>

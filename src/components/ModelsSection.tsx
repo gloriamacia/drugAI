@@ -1,4 +1,3 @@
-// src/components/ModelsSection.tsx
 import { FC, useState, useMemo, useEffect } from "react";
 import { models, Model } from "../data/modelsData";
 
@@ -38,33 +37,36 @@ export const ModelsSection: FC = () => {
     if (s.toLowerCase().includes("k")) n *= 1000;
     return n;
   };
-  const parseDays = (s: string) => {
-    const [val, unit] = s.split(" ");
-    const v = parseFloat(val);
-    if (unit.startsWith("day")) return v;
-    if (unit.startsWith("week")) return v * 7;
-    if (unit.startsWith("month")) return v * 30;
-    return v;
-  };
+  const parseDate = (d: string) => new Date(d).getTime();
 
   // sort
   const sorted = useMemo(() => {
     const arr = [...filtered];
     if (sortOption === "Most likes") {
       arr.sort((a, b) => parseCount(b.likes) - parseCount(a.likes));
-    } else if (sortOption === "Recently updated") {
-      arr.sort((a, b) => parseDays(a.updated) - parseDays(b.updated));
+    } else if (sortOption === "Most citations") {
+      arr.sort((a, b) => (b as any).citations - (a as any).citations);
+    } else if (sortOption === "Newest publication") {
+      arr.sort(
+        (a, b) => parseDate(b.publicationDate) - parseDate(a.publicationDate)
+      );
     } else {
-      // trending
+      // trending: combine likes recency and citations recency
       const likesArr = arr.map((m) => parseCount(m.likes));
-      const daysArr = arr.map((m) => parseDays(m.updated));
+      const daysArr = arr.map(
+        (m) =>
+          (Date.now() - parseDate((m as any).publicationDate)) /
+          (1000 * 60 * 60 * 24)
+      );
       const maxL = Math.max(...likesArr),
         minL = Math.min(...likesArr);
       const maxD = Math.max(...daysArr),
         minD = Math.min(...daysArr);
       arr.forEach((m) => {
-        const L = parseCount(m.likes),
-          D = parseDays(m.updated);
+        const L = parseCount(m.likes);
+        const D =
+          (Date.now() - parseDate((m as any).publicationDate)) /
+          (1000 * 60 * 60 * 24);
         const normL = maxL === minL ? 0 : (L - minL) / (maxL - minL);
         const normR = maxD === minD ? 0 : (maxD - D) / (maxD - minD);
         (m as any).trending = (normL + normR) / 2;
@@ -82,10 +84,7 @@ export const ModelsSection: FC = () => {
   );
 
   return (
-    <section
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8"
-      /* reduced top padding from py-8 to pt-4 */
-    >
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
       {/* Header + Search + Sort */}
       <div className="flex flex-col md:flex-row md:items-center mb-4 gap-4">
         <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-8">
@@ -103,11 +102,11 @@ export const ModelsSection: FC = () => {
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value)}
             className="w-48 bg-white border border-gray-300 rounded-lg px-4 pr-8 py-2 text-sm appearance-none"
-            /* added pr-8 and appearance-none to move native arrow in and away from the border */
           >
             <option>Trending</option>
             <option>Most likes</option>
-            <option>Recently updated</option>
+            <option>Most citations</option>
+            <option>Newest publication</option>
           </select>
         </div>
       </div>
@@ -134,41 +133,47 @@ export const ModelsSection: FC = () => {
         {pageData.map((m: Model) => (
           <div
             key={m.title}
-            className="model-card bg-white rounded-xl shadow-md overflow-hidden transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
+            className="model-card bg-white rounded-xl shadow-md overflow-hidden transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col h-full"
           >
             <img
               className="w-full h-48 object-cover"
-              src={m.thumbnailUrl}
+              src={(m as any).thumbnailUrl}
               alt={`${m.title} thumbnail`}
             />
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                {m.title}
-              </h3>
-              <p className="text-sm text-gray-600 mb-3">{m.description}</p>
-              <div className="flex flex-wrap gap-1 mb-3">
-                {m.tags.map((t) => (
-                  <span
-                    key={t}
-                    className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded"
-                  >
-                    {t}
-                  </span>
-                ))}
+            <div className="p-4 flex flex-col justify-between flex-grow">
+              {/* Top section */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {m.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">{m.description}</p>
               </div>
-              <div className="flex justify-between items-center text-sm text-gray-500">
-                <span>
-                  <i className="fas fa-eye mr-1"></i>
-                  {m.views}
-                </span>
-                <span>
-                  <i className="fas fa-heart mr-1"></i>
-                  {m.likes}
-                </span>
-                <span>
-                  <i className="fas fa-calendar-alt mr-1"></i>
-                  {m.updated}
-                </span>
+              {/* Bottom section: tags + footer */}
+              <div>
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {m.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex justify-between items-center text-sm text-gray-500">
+                  <span>
+                    <i className="fas fa-book mr-1"></i>
+                    {(m as any).citations}
+                  </span>
+                  <span>
+                    <i className="fas fa-heart mr-1"></i>
+                    {m.likes}
+                  </span>
+                  <span>
+                    <i className="fas fa-calendar-alt mr-1"></i>
+                    {(m as any).publicationDate}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
