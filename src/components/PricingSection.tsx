@@ -1,73 +1,99 @@
+// src/components/PricingSection.tsx
 import { FC } from "react";
 import { Link } from "react-router-dom";
 
 export const PricingSection: FC = () => (
-  <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-primary">
-    <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-8">
-      Pricing Plans
+  <section
+    id="pricing"
+    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12"
+  >
+    <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 text-center">
+      Pricing
     </h2>
 
-    <div className="w-full grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+    <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Free Plan */}
-      <div className="border border-gray-200 rounded-xl p-6 flex flex-col h-full transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Free</h3>
-        <p className="text-gray-600 mb-6">
-          Perfect for getting started with AI predictions.
-        </p>
-        <div className="mb-6 space-y-2">
-          <div className="flex items-center">
-            <span className="mr-2 font-medium">Monthly quota:</span>
-            <span className="text-gray-900">100 predictions</span>
-          </div>
-          <div className="flex items-center">
-            <span className="mr-2 font-medium">Concurrency:</span>
-            <span className="text-gray-900">1 job at a time</span>
-          </div>
-          <div className="flex items-center">
-            <span className="mr-2 font-medium">Support:</span>
-            <span className="text-gray-900">Community forum</span>
-          </div>
+      <div className="relative bg-white rounded-2xl ring-1 ring-gray-200 shadow-md p-6 flex flex-col justify-between transform-gpu transition-transform duration-300 ease-out hover:-translate-y-2 hover:shadow-lg">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-800">Free</h3>
+          <p className="mt-2 text-gray-600">
+            Get started with basic predictions.
+          </p>
+
+          <ul className="mt-6 space-y-4">
+            <li className="flex items-start">
+              <span className="mr-3 mt-1 text-green-500">✔️</span>
+              <span className="text-gray-700">100 predictions / month</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-3 mt-1 text-green-500">✔️</span>
+              <span className="text-gray-700">1 job at a time</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-3 mt-1 text-green-500">✔️</span>
+              <span className="text-gray-700">Community forum support</span>
+            </li>
+          </ul>
         </div>
-        <div className="mt-auto">
-          <span className="text-4xl font-extrabold text-gray-900">$0</span>
-          <span className="text-base text-gray-600"> / month</span>
-          <button
-            className="mt-6 w-full bg-gray-200 text-gray-800 font-medium py-2 rounded-lg hover:bg-gray-300 transition-colors"
-            disabled
+
+        <div className="mt-8 text-center">
+          <span className="text-3xl md:text-4xl font-extrabold text-gray-900">
+            $0
+          </span>
+          <span className="text-sm md:text-base text-gray-600">/mo</span>
+
+          <Link
+            to="/sign-in"
+            className="mt-6 block w-full py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors"
           >
             Try Free
-          </button>
+          </Link>
         </div>
       </div>
 
       {/* Pro Plan */}
-      <div className="border-2 border-primary rounded-xl p-6 flex flex-col h-full transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">Pro</h3>
-        <p className="text-gray-600 mb-6">
-          For power users who need higher throughput.
-        </p>
-        <div className="mb-6 space-y-2">
-          <div className="flex items-center">
-            <span className="mr-2 font-medium">Monthly quota:</span>
-            <span className="text-gray-900">10,000 predictions</span>
-          </div>
-          <div className="flex items-center">
-            <span className="mr-2 font-medium">Concurrency:</span>
-            <span className="text-gray-900">Up to 10 jobs concurrently</span>
-          </div>
-          <div className="flex items-center">
-            <span className="mr-2 font-medium">Support:</span>
-            <span className="text-gray-900">Community forum & Email</span>
-          </div>
+      <div className="relative bg-white rounded-2xl ring-2 ring-primary shadow-md p-6 flex flex-col justify-between transform-gpu transition-transform duration-300 ease-out hover:-translate-y-2 hover:shadow-lg">
+        <div className="absolute -top-3 right-3">
+          <span className="bg-primary text-white text-xs font-semibold uppercase py-1 px-3 rounded-full">
+            Most Popular
+          </span>
         </div>
-        <div className="mt-auto">
-          <span className="text-4xl font-extrabold text-gray-900">$29</span>
-          <span className="text-base text-gray-600"> / month</span>
+
+        <div>
+          <h3 className="text-xl font-semibold text-gray-800">Pro</h3>
+          <p className="mt-2 text-gray-600">
+            For professionals needing higher throughput.
+          </p>
+
+          <ul className="mt-6 space-y-4">
+            <li className="flex items-start">
+              <span className="mr-3 mt-1 text-green-500">✔️</span>
+              <span className="text-gray-700">10,000 predictions / month</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-3 mt-1 text-green-500">✔️</span>
+              <span className="text-gray-700">Up to 10 concurrent jobs</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-3 mt-1 text-green-500">✔️</span>
+              <span className="text-gray-700">Priority email support</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-baseline justify-center space-x-1">
+            <span className="text-3xl md:text-4xl font-extrabold text-gray-900">
+              $29
+            </span>
+            <span className="text-sm md:text-base text-gray-600">/mo</span>
+          </div>
+
           <Link
             to="/subscribe"
-            className="mt-6 block w-full bg-primary text-white font-medium py-2 rounded-lg hover:bg-primary transition-colors text-center"
+            className="mt-6 block w-full py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors"
           >
-            Subscribe
+            Subscribe Now
           </Link>
         </div>
       </div>
