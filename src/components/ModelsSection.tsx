@@ -1,49 +1,50 @@
 import { FC, useState, useMemo, useEffect } from "react";
-import { models, Model } from "../data/modelsData";
+import { models, type Model } from "../data/modelsData";
+import SortDropdown from "../components/SortDropdown";
 
-export const ModelsSection: FC = () => {
-  const [activeTag, setActiveTag] = useState<string>("All");
-  const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [sortOption, setSortOption] = useState<string>("Newest publication");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(6);
+const ModelsSection: FC = () => {
+  /* ---------- state ---------- */
+  const [activeTag, setActiveTag] = useState("All");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortOption, setSortOption] = useState("Newest publication");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
 
-  // Adjust pageSize: 3 cards on mobile
+  /* responsive page‑size */
   useEffect(() => {
-    const updateSize = () => setPageSize(window.innerWidth < 768 ? 3 : 6);
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
+    const update = () => setPageSize(window.innerWidth < 768 ? 3 : 6);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Build unique tags
-  const allTags = useMemo(
-    () => Array.from(new Set(models.flatMap((m) => m.tags))),
-    []
-  );
-  const tagList = ["All", ...allTags];
+  /* tag list */
+  const tagList = useMemo(() => {
+    const unique = Array.from(new Set(models.flatMap((m) => m.tags)));
+    return ["All", ...unique];
+  }, []);
 
-  // Reset to first page on filter/search/sort/pageSize change
+  /* reset page on any filter change */
   useEffect(
     () => setCurrentPage(1),
     [activeTag, sortOption, searchTerm, pageSize]
   );
 
-  // Filter logic
+  /* filter */
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return models.filter((m) => {
-      const matchesTag = activeTag === "All" || m.tags.includes(activeTag);
-      const matchesSearch =
+      const byTag = activeTag === "All" || m.tags.includes(activeTag);
+      const bySearch =
         !term ||
         m.title.toLowerCase().includes(term) ||
         m.description.toLowerCase().includes(term);
-      return matchesTag && matchesSearch;
+      return byTag && bySearch;
     });
   }, [activeTag, searchTerm]);
 
-  // Sort logic
+  /* sort helpers */
   const parseCount = (s: string) => {
     let n = parseFloat(s.replace(/[^0-9.]/g, ""));
     if (s.toLowerCase().includes("k")) n *= 1000;
@@ -51,6 +52,7 @@ export const ModelsSection: FC = () => {
   };
   const parseDate = (d: string) => new Date(d).getTime();
 
+  /* sort */
   const sorted = useMemo(() => {
     const arr = [...filtered];
     switch (sortOption) {
@@ -72,21 +74,21 @@ export const ModelsSection: FC = () => {
     return arr;
   }, [filtered, sortOption]);
 
-  // Pagination
+  /* pagination */
   const totalPages = Math.ceil(sorted.length / pageSize);
   const pageData = sorted.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
+  /* ---------------- UI ---------------- */
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
-      {/* Title */}
       <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-8">
         Models
       </h2>
 
-      {/* Mobile Search */}
+      {/* mobile search */}
       <div className="sm:hidden mb-4">
         <input
           type="text"
@@ -97,30 +99,19 @@ export const ModelsSection: FC = () => {
         />
       </div>
 
-      {/* Mobile Filters & Sort */}
-      <div className="mb-6 sm:hidden flex gap-2 justify-start">
+      {/* mobile toolbar */}
+      <div className="mb-6 sm:hidden flex gap-2">
         <button
           onClick={() => setShowFilters(!showFilters)}
           className="flex items-center px-2 py-1 bg-gray-100 rounded-full text-xs font-medium"
         >
-          <i className="fa-solid fa-filter mr-1 text-gray-500"></i>
+          <i className="fa-solid fa-filter mr-1 text-gray-500" />
           Filters
         </button>
-        <div className="flex items-center px-2 py-1 bg-gray-100 rounded-full text-xs font-medium">
-          <i className="fa-solid fa-sort mr-1 text-gray-500"></i>
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            className="bg-transparent border-none focus:outline-none text-xs"
-          >
-            <option>Most likes</option>
-            <option>Most citations</option>
-            <option>Newest publication</option>
-          </select>
-        </div>
+        <SortDropdown sortOption={sortOption} setSortOption={setSortOption} />
       </div>
 
-      {/* Tags Filter */}
+      {/* tag pills */}
       <div
         className={`${
           showFilters ? "flex" : "hidden"
@@ -130,18 +121,18 @@ export const ModelsSection: FC = () => {
           <button
             key={tag}
             onClick={() => setActiveTag(tag)}
-            className={`${
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               tag === activeTag
                 ? "bg-primary text-white"
                 : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-            } px-3 py-1 rounded-full text-xs font-medium transition-colors`}
+            }`}
           >
             {tag}
           </button>
         ))}
       </div>
 
-      {/* Desktop Search & Sort */}
+      {/* desktop search + sort */}
       <div className="hidden sm:flex justify-end gap-4 mb-6">
         <input
           type="text"
@@ -150,18 +141,15 @@ export const ModelsSection: FC = () => {
           placeholder="Search models..."
           className="w-40 md:w-48 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <select
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value)}
-          className="w-40 md:w-48 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm appearance-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option>Most likes</option>
-          <option>Most citations</option>
-          <option>Newest publication</option>
-        </select>
+        <SortDropdown
+          variant="box"
+          sortOption={sortOption}
+          setSortOption={setSortOption}
+          className="w-40 md:w-48 text-sm font-medium"
+        />
       </div>
 
-      {/* Cards Grid */}
+      {/* card grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {pageData.map((m: Model) => (
           <div
@@ -169,10 +157,11 @@ export const ModelsSection: FC = () => {
             className="bg-white rounded-xl shadow-md overflow-hidden transform transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col"
           >
             <img
-              className="w-full h-48 sm:h-56 object-cover"
               src={(m as any).thumbnailUrl}
               alt={`${m.title} thumbnail`}
+              className="w-full h-48 sm:h-56 object-cover"
             />
+
             <div className="p-4 flex flex-col flex-grow">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -180,6 +169,7 @@ export const ModelsSection: FC = () => {
                 </h3>
                 <p className="text-sm text-gray-600 mb-3">{m.description}</p>
               </div>
+
               <div className="mt-auto">
                 <div className="flex flex-wrap gap-1 mb-3">
                   {m.tags.map((t) => (
@@ -191,20 +181,24 @@ export const ModelsSection: FC = () => {
                     </span>
                   ))}
                 </div>
+
                 <div className="flex justify-between items-center text-sm text-gray-500">
                   <span>
-                    <i className="fa-solid fa-book mr-1 text-gray-500"></i>
+                    <i className="fa-solid fa-book mr-1 text-gray-500" />
                     {(m as any).citations}
                   </span>
                   <span>
-                    <i className="fa-solid fa-heart mr-1 text-gray-500"></i>
+                    <i className="fa-solid fa-heart mr-1 text-gray-500" />
                     {m.likes}
                   </span>
                   <span>
-                    <i className="fa-solid fa-calendar-alt mr-1 text-gray-500"></i>
+                    <i className="fa-solid fa-calendar-alt mr-1 text-gray-500" />
                     {new Date((m as any).publicationDate).toLocaleDateString(
                       undefined,
-                      { month: "short", year: "2-digit" }
+                      {
+                        month: "short",
+                        year: "2-digit",
+                      }
                     )}
                   </span>
                 </div>
@@ -214,7 +208,7 @@ export const ModelsSection: FC = () => {
         ))}
       </div>
 
-      {/* Pagination */}
+      {/* pagination */}
       <div className="flex justify-center mt-10">
         <nav className="inline-flex items-center rounded-md shadow">
           <button
@@ -224,24 +218,23 @@ export const ModelsSection: FC = () => {
           >
             Previous
           </button>
+
           <div className="hidden sm:flex">
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const page = i + 1;
-              return (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium ${
-                    page === currentPage
-                      ? "text-primary"
-                      : "text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-2 border-t border-b border-gray-300 bg-white text-sm font-medium ${
+                  page === currentPage
+                    ? "text-primary"
+                    : "text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
           </div>
+
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
@@ -254,3 +247,6 @@ export const ModelsSection: FC = () => {
     </section>
   );
 };
+
+export default ModelsSection;
+export { ModelsSection };

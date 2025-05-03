@@ -2,6 +2,10 @@
 
 @theme {
   --font-primary: "Inter", "sans-serif";
-  /* --breakpoint-3xl: 120rem; */
   --color-primary: #004ab3;
+}
+html,
+body,
+#root {
+  height: 100%;
 }

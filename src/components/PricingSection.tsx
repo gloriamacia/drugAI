@@ -1,6 +1,7 @@
 // src/components/PricingSection.tsx
 import { FC } from "react";
 import { Link } from "react-router-dom";
+import { SubscribeButton } from "./SubscribeButton";
 
 export const PricingSection: FC = () => (
   <section
@@ -89,12 +90,7 @@ export const PricingSection: FC = () => (
             <span className="text-sm md:text-base text-gray-600">/mo</span>
           </div>
 
-          <Link
-            to="/subscribe"
-            className="mt-6 block w-full py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors"
-          >
-            Subscribe Now
-          </Link>
+          <SubscribeButton />
         </div>
       </div>
     </div>

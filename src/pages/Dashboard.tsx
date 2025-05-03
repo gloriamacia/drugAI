@@ -1,8 +1,3 @@
-// export default function Dashboard() {
-//   return <h2>🎯 Dashboard: You're signed in!</h2>;
-// }
-
-// src/pages/Dashboard.tsx
 import { FC } from "react";
 import { useUser, RedirectToSignIn, SignedIn } from "@clerk/clerk-react";
 
@@ -23,9 +18,11 @@ const Dashboard: FC = () => {
   const name = user.username ?? user.firstName ?? "there";
 
   return (
-    <SignedIn>
-      <h2>🎯 Dashboard: Welcome back, {name}!</h2>
-    </SignedIn>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
+      <SignedIn>
+        <h2>🎯 Dashboard: Welcome back, {name}!</h2>
+      </SignedIn>
+    </section>
   );
 };
 

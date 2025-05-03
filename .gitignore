@@ -8,6 +8,8 @@
 # Vite local env overrides
 .env.local
 .env.*.local
+.env.development
+.env.production
 
 # general env files (you might keep an example around)
 .env
