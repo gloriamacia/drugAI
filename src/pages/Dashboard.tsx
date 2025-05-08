@@ -1,3 +1,4 @@
+// src/pages/dashboard.tsx
 import { FC } from "react";
 import { useUser, RedirectToSignIn, SignedIn } from "@clerk/clerk-react";
 import InferenceForm from "../components/InferenceForm";
@@ -5,26 +6,27 @@ import InferenceForm from "../components/InferenceForm";
 const Dashboard: FC = () => {
   const { isLoaded, isSignedIn, user } = useUser();
 
-  // Wait until Clerk has loaded the session
   if (!isLoaded) {
     return <div>Loading…</div>;
   }
 
-  // If there's no signed-in user, kick them to sign in
   if (!isSignedIn || !user) {
     return <RedirectToSignIn />;
   }
 
-  // From here on, `user` is non-null
   const name = user.username ?? user.firstName ?? "there";
+  const clerkId = user.id;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
-      <SignedIn>
-        <h2>🎯 Dashboard: Welcome back, {name}!</h2>
-        <h2 className="text-2xl font-semibold mb-4">Model Playground</h2>
-        <InferenceForm />
-      </SignedIn>
+    <section className="max-w-2xl mx-auto p-6">
+      <h2 className="text-2xl mb-4">
+        🎯 Dashboard: Welcome back, {name}!{" "}
+        <h3 className="text-sm text-gray-500">(Clerk ID: {clerkId})</h3>
+      </h2>
+
+      <h3 className="text-xl font-semibold mb-4">Model Playground</h3>
+
+      <InferenceForm />
     </section>
   );
 };
