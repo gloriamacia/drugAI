@@ -22,13 +22,10 @@ class DrugAIStack(Stack):
         clerk_issuer   = "https://finer-molly-35.clerk.accounts.dev"
         clerk_audience = ["pk_test_ZmluZXItbW9sbHktMzUuY2xlcmsuYWNjb3VudHMuZGV2JA"]
         free_quota     = "5"
+        pro_quota      = "100"
         stripe_price   = "price_1RLgj6PMlnECffWD9uiVzrSJ"
 
-        # ────────── Retrieve Stripe secrets  ──────────
-
-
-        if not stripe_secret_value or not stripe_webhook_value:
-            raise ValueError("Pass 'stripeSecretKey' and 'stripeWebhookSecret' in CDK context")
+        # ────────── Secrets ──────────
 
         # Create new Secrets in Secrets Manager
         stripe_secret = secrets.Secret(
@@ -53,8 +50,14 @@ class DrugAIStack(Stack):
             removal_policy=RemovalPolicy.RETAIN,
         )
 
-        # ────────── Lambda: ML Inference (/invoke) ──────────
-        ml_src = ROOT / "lambdas" / "ml_inference"
+        # ────────── Authorizer ──────────
+        jwt_auth = authorizers.HttpJwtAuthorizer(
+            "ClerkAuthorizer",
+            jwt_issuer=clerk_issuer,
+            jwt_audience=clerk_audience,
+        )
+
+        # ────────── ML Inference Lambda (/invoke) ──────────
         ml_fn = _lambda.Function(
             self, "MLInferenceHandler",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -65,13 +68,14 @@ class DrugAIStack(Stack):
             environment={
                 "TABLE_NAME": table.table_name,
                 "FREE_QUOTA": free_quota,
+                "PRO_QUOTA": pro_quota,
             },
             code=_lambda.Code.from_asset(
-                str(ml_src),
+                str(ROOT / "lambdas" / "ml_inference"),
                 bundling=BundlingOptions(
                     image=_lambda.Runtime.PYTHON_3_12.bundling_image,
                     command=[
-                        "bash", "-c",
+                        "bash","-c",
                         "pip install -r requirements.txt -t /asset-output "
                         "&& cp -au /asset-input/* /asset-output/"
                     ],
@@ -80,8 +84,7 @@ class DrugAIStack(Stack):
         )
         table.grant_read_write_data(ml_fn)
 
-        # ────────── Lambda: Stripe Webhook (/webhook) ──────────
-        webhook_src = ROOT / "lambdas" / "stripe_webhook"
+        # ────────── Stripe Webhook Lambda (/webhook) ──────────
         webhook_fn = _lambda.Function(
             self, "StripeWebhookHandler",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -91,17 +94,17 @@ class DrugAIStack(Stack):
             memory_size=256,
             environment={
                 "TABLE_NAME": table.table_name,
-                "STRIPE_PRICE_ID": stripe_price,
                 "STRIPE_SECRET_ARN": stripe_secret.secret_arn,
                 "STRIPE_WEBHOOK_SECRET_ARN": stripe_webhook_secret.secret_arn,
                 "FREE_QUOTA": free_quota,
+                "PRO_QUOTA": pro_quota,
             },
             code=_lambda.Code.from_asset(
-                str(webhook_src),
+                str(ROOT / "lambdas" / "stripe_webhook"),
                 bundling=BundlingOptions(
                     image=_lambda.Runtime.PYTHON_3_12.bundling_image,
                     command=[
-                        "bash", "-c",
+                        "bash","-c",
                         "pip install -r requirements.txt -t /asset-output "
                         "&& cp -au /asset-input/* /asset-output/"
                     ],
@@ -112,8 +115,7 @@ class DrugAIStack(Stack):
         stripe_secret.grant_read(webhook_fn)
         stripe_webhook_secret.grant_read(webhook_fn)
 
-        # ────────── Lambda: Stripe Checkout (/checkout) ──────────
-        checkout_src = ROOT / "lambdas" / "stripe_checkout"
+        # ────────── Stripe Checkout Lambda (/checkout) ──────────
         checkout_fn = _lambda.Function(
             self, "StripeCheckoutHandler",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -126,14 +128,14 @@ class DrugAIStack(Stack):
                 "STRIPE_PRICE_ID": stripe_price,
                 "SUCCESS_URL": "http://localhost:5173/dashboard?success=1",
                 "CANCEL_URL":  "http://localhost:5173/dashboard?canceled=1",
-                "DASHBOARD_URL": "http://localhost:5173/dashboard",
+                "DASHBOARD_URL":"http://localhost:5173/dashboard",
             },
             code=_lambda.Code.from_asset(
-                str(checkout_src),
+                str(ROOT / "lambdas" / "stripe_checkout"),
                 bundling=BundlingOptions(
                     image=_lambda.Runtime.PYTHON_3_12.bundling_image,
                     command=[
-                        "bash", "-c",
+                        "bash","-c",
                         "pip install -r requirements.txt -t /asset-output "
                         "&& cp -au /asset-input/* /asset-output/"
                     ],
@@ -142,49 +144,28 @@ class DrugAIStack(Stack):
         )
         stripe_secret.grant_read(checkout_fn)
 
-        # ────────── JWT Authorizer ──────────
-        jwt_auth = authorizers.HttpJwtAuthorizer(
-            "ClerkAuthorizer",
-            jwt_issuer=clerk_issuer,
-            jwt_audience=clerk_audience,
-        )
-
-        # ────────── HTTP API with CORS ──────────
-        http_api = apigw.HttpApi(
-            self, "MLHttpApi",
-            api_name="MLInferenceAPI",
+        # ────────── HTTP API & Routes ──────────
+        http_api = apigw.HttpApi(self, "MLHttpApi",
+            api_name="DrugAIHttpApi",
             create_default_stage=False,
             cors_preflight=apigw.CorsPreflightOptions(
                 allow_origins=["http://localhost:5173"],
                 allow_methods=[apigw.CorsHttpMethod.ANY],
-                allow_headers=["Authorization", "Content-Type"],
-                allow_credentials=False,
+                allow_headers=["Authorization","Content-Type"],
             ),
         )
-
-        http_api.add_stage(
-            "DevStage",
-            stage_name="dev",
-            auto_deploy=True,
-        )
-
-        http_api.add_routes(
-            path="/invoke",
-            methods=[apigw.HttpMethod.POST],
-            integration=integrations.HttpLambdaIntegration("MLIntegration", ml_fn),
-            authorizer=jwt_auth,
-        )
-        http_api.add_routes(
-            path="/webhook",
-            methods=[apigw.HttpMethod.POST],
-            integration=integrations.HttpLambdaIntegration("StripeWebhookIntegration", webhook_fn),
-        )
-        http_api.add_routes(
-            path="/checkout",
-            methods=[apigw.HttpMethod.POST],
-            integration=integrations.HttpLambdaIntegration("StripeCheckoutIntegration", checkout_fn),
-            authorizer=jwt_auth,
-        )
+        http_api.add_stage("DevStage", stage_name="dev", auto_deploy=True)
+        for path, fn in [
+            ("/invoke", ml_fn),
+            ("/webhook", webhook_fn),
+            ("/checkout", checkout_fn),
+        ]:
+            http_api.add_routes(
+                path=path,
+                methods=[apigw.HttpMethod.POST],
+                integration=integrations.HttpLambdaIntegration(f"{path}-int", fn),
+                authorizer= jwt_auth if path != "/webhook" else None
+            )
 
         # ────────── Outputs ──────────
         CfnOutput(self, "ApiEndpoint", value=http_api.api_endpoint)
