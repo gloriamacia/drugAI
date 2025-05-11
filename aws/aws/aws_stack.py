@@ -25,8 +25,7 @@ class DrugAIStack(Stack):
         stripe_price   = "price_1RLgj6PMlnECffWD9uiVzrSJ"
 
         # ────────── Retrieve Stripe secrets  ──────────
-        stripe_secret_value = ""
-        stripe_webhook_value = ""
+
 
         if not stripe_secret_value or not stripe_webhook_value:
             raise ValueError("Pass 'stripeSecretKey' and 'stripeWebhookSecret' in CDK context")
@@ -127,6 +126,7 @@ class DrugAIStack(Stack):
                 "STRIPE_PRICE_ID": stripe_price,
                 "SUCCESS_URL": "http://localhost:5173/dashboard?success=1",
                 "CANCEL_URL":  "http://localhost:5173/dashboard?canceled=1",
+                "DASHBOARD_URL": "http://localhost:5173/dashboard",
             },
             code=_lambda.Code.from_asset(
                 str(checkout_src),

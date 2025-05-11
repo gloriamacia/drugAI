@@ -1,19 +1,60 @@
+// src/pages/subscribe.tsx
 import { useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 
 export default function SubscribePage() {
-  const { isLoaded, user } = useUser();
+  const { isLoaded: userLoaded, user } = useUser();
+  const { getToken, isLoaded: authLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
-    if (!isLoaded) return; // wait until Clerk finishes
-    if (!user) {
-      window.location.href = "/sign-in"; // safety net
+    if (!userLoaded || !authLoaded) return;
+    if (!isSignedIn || !user) {
+      window.location.href = "/sign-in?redirect_url=/subscribe";
       return;
     }
-    // direct to your Stripe hosted checkout link
-    window.location.href = "https://buy.stripe.com/test_bIY3eE67wgz16LC3cc";
-    //window.location.href = "https://buy.stripe.com/dR6fZD9h50Vi9q0fYZ";
-  }, [isLoaded, user]);
 
-  return <div className="p-6">Redirecting to checkout…</div>;
+    const email = user.primaryEmailAddress?.emailAddress;
+    if (!email) {
+      alert("We couldn’t find your email; please add one in your profile.");
+      return;
+    }
+
+    async function go() {
+      try {
+        const token = await getToken({ template: "aws" });
+        const base = import.meta.env.VITE_API_URL;
+        const resp = await fetch(`${base}/checkout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          throw new Error(`HTTP ${resp.status}: ${txt}`);
+        }
+
+        const data = await resp.json();
+        if (data.redirectUrl) {
+          // existing customer is redirected back to dashboard
+          window.location.href = data.redirectUrl;
+        } else if (data.url) {
+          // new checkout flow
+          window.location.href = data.url;
+        } else {
+          throw new Error("Invalid response from checkout endpoint");
+        }
+      } catch (e: any) {
+        console.error("❌ Checkout error:", e);
+        alert("Unable to start checkout.\n" + e.message);
+      }
+    }
+
+    go();
+  }, [userLoaded, authLoaded, isSignedIn, user, getToken]);
+
+  return <div className="p-6">Redirecting…</div>;
 }
