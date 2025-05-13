@@ -26,7 +26,8 @@ class DrugAIStack(Stack):
         stripe_price   = "price_1RLgj6PMlnECffWD9uiVzrSJ"
 
         # ────────── Secrets ──────────
-
+        # stripe_secret_value = ""
+        # stripe_webhook_value = ""
         # Create new Secrets in Secrets Manager
         stripe_secret = secrets.Secret(
             self, "StripeSecret",
