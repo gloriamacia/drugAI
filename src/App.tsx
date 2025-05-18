@@ -1,10 +1,11 @@
 // src/App.tsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import NavBar from "./components/Navbar";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/SignIn";
 import SubscribePage from "./pages/SubscribePage";
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
 
 export default function App() {
   return (
@@ -14,13 +15,26 @@ export default function App() {
       </header>
       <main className="flex-1 mt-16">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/subscribe" element={<SubscribePage />} />
+          {/* Root: redirect signed-in users, show Home to signed-out */}
+          <Route
+            path="/"
+            element={
+              <>
+                <SignedIn>
+                  <Navigate to="/dashboard" replace />
+                </SignedIn>
+                <SignedOut>
+                  <Home />
+                </SignedOut>
+              </>
+            }
+          />
+
+          {/* Protected dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
 
-          {/*
-            Catch all Clerk sign-in routes (including OAuth callbacks)
-          */}
+          {/* Public pages */}
+          <Route path="/subscribe" element={<SubscribePage />} />
           <Route path="/sign-in/*" element={<SignIn />} />
         </Routes>
       </main>
